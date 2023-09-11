@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stock-feed-viewer-app
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: stock-feed-viewer-postgres
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    ports:
+      - "8090:8090"
+
+  postgres:
+    image: postgres:latest
+    container_name: stock-feed-viewer-postgres
+    environment:
+      POSTGRES_DB: stock_feed_viewer_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
