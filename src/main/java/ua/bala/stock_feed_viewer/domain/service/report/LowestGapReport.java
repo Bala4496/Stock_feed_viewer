@@ -20,8 +20,8 @@ public class LowestGapReport implements QuoteReport {
 
     @Override
     public QuoteReport buildReport(List<Quote> quotes) {
-        quotesList = quotes.stream()
-                .sorted(Comparator.comparing(Quote::getGapPercentage))
+        quotesList = quotes.stream().parallel()
+                .sorted(Comparator.comparing(quote -> quote.getGapPercentage().abs()))
                 .limit(limit)
                 .toList();
         return this;

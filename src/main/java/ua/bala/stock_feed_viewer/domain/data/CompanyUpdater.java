@@ -2,6 +2,7 @@ package ua.bala.stock_feed_viewer.domain.data;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,17 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
-public class CompanyUpdater {
+public class CompanyUpdater implements DataUpdater {
 
     private final CompanyFetcher companyFetcher;
     private final CompanyRepository companyRepository;
 
-
     @EventListener(ApplicationReadyEvent.class)
-    public void updateCompanies() {
-        var thread = new Thread(new UpdateCompaniesTask(), "UpdateCompaniesThread");
+    @Override
+    public void update() {
+        var thread = new Thread(new UpdateCompaniesTask(), "UpdateCompanies");
         thread.setDaemon(true);
         thread.start();
     }
@@ -35,27 +37,30 @@ public class CompanyUpdater {
 
         @Override
         public void run() {
-            ForkJoinPool forkJoinPool = new ForkJoinPool();
-            var savedCompaniesFuture = CompletableFuture.supplyAsync(companyFetcher::fetchCompanies);
-            var fetchedCompaniesFuture = CompletableFuture.supplyAsync(companyRepository::findAll);
+            log.info("Thread - {} : started", Thread.currentThread().getName());
+            while (true) {
+                ForkJoinPool forkJoinPool = new ForkJoinPool();
+                var savedCompaniesFuture = CompletableFuture.supplyAsync(companyRepository::findAll);
+                var fetchedCompaniesFuture = CompletableFuture.supplyAsync(companyFetcher::fetchCompanies);
 
-            var combinedFuture = savedCompaniesFuture.thenCombineAsync(
-                    fetchedCompaniesFuture,
-                    (savedCompanies, fetchedCompanies) -> {
-                        var differentCompanies = forkJoinPool.invoke(new DifferenceCompaniesTask(fetchedCompanies, savedCompanies));
-                        return companyRepository.saveAll(differentCompanies);
-                    }
-            );
+                var combinedFuture = savedCompaniesFuture.thenCombineAsync(
+                        fetchedCompaniesFuture,
+                        (savedCompanies, fetchedCompanies) -> {
+                            var differentCompanies = forkJoinPool.invoke(new DifferenceCompaniesTask(savedCompanies, fetchedCompanies));
+                            return companyRepository.saveAll(differentCompanies);
+                        }
+                );
 
-            combinedFuture.join();
+                combinedFuture.join();
+            }
         }
     }
 
     @AllArgsConstructor
     class DifferenceCompaniesTask extends RecursiveTask<List<Company>> {
 
-        private final List<Company> fetchedCompanies;
         private final List<Company> savedCompanies;
+        private final List<Company> fetchedCompanies;
 
         @Override
         protected List<Company> compute() {
@@ -66,8 +71,8 @@ public class CompanyUpdater {
             } else {
                 int mid = fetchedCompanies.size() / 2;
 
-                var leftTask = new DifferenceCompaniesTask(fetchedCompanies.subList(0, mid), savedCompanies);
-                var rightTask = new DifferenceCompaniesTask(fetchedCompanies.subList(mid, fetchedCompanies.size()), savedCompanies);
+                var leftTask = new DifferenceCompaniesTask(savedCompanies, fetchedCompanies.subList(0, mid));
+                var rightTask = new DifferenceCompaniesTask(savedCompanies, fetchedCompanies.subList(mid, fetchedCompanies.size()));
 
                 leftTask.fork();
                 var rightResult = rightTask.compute();

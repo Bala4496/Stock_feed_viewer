@@ -19,7 +19,7 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
                 WHERE q2.companyCode = :companyCode
                 )
             """)
-    Optional<Quote> findLatestQuoteOrderedByCompanyCode(String companyCode);
+    Optional<Quote> findLatestQuoteByCompanyCode(String companyCode);
 
 //    @Query("""
 //            SELECT q
