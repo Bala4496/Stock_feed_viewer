@@ -19,7 +19,7 @@ spring:
 
 stock-feed-api:
   url: ${STOCK_FEED_API_HOST:localhost:8080}
-  api-key: ${STOCK_FEED_API_KEY:nXWCGFEwuCscBuGheSNB}
+  api-key: JexlTkjKyHWOtVkKCSie
 
 displaying:
   delay: ${DISPLAY_DELAY:5000} # 5 * 1000ms = 5 sec

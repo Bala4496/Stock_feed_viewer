@@ -45,10 +45,7 @@ public class CompanyUpdater implements DataUpdater {
 
                 var combinedFuture = savedCompaniesFuture.thenCombineAsync(
                         fetchedCompaniesFuture,
-                        (savedCompanies, fetchedCompanies) -> {
-                            var differentCompanies = forkJoinPool.invoke(new DifferenceCompaniesTask(savedCompanies, fetchedCompanies));
-                            return companyRepository.saveAll(differentCompanies);
-                        }
+                        (savedCompanies, fetchedCompanies) -> companyRepository.saveAll(forkJoinPool.invoke(new DifferenceCompaniesTask(savedCompanies, fetchedCompanies)))
                 );
 
                 combinedFuture.join();

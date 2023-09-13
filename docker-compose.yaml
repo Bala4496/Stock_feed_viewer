@@ -12,7 +12,6 @@ services:
       DB_HOST: stock-feed-viewer-postgres
       DB_USERNAME: root
       DB_PASSWORD: root
-      STOCK_FEED_API_KEY: nXWCGFEwuCscBuGheSNB
     ports:
       - "8090:8090"
 

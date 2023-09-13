@@ -38,9 +38,8 @@ public class QuoteUpdater implements DataUpdater {
         @Override
         public void run() {
             log.info("Thread - {} : started", Thread.currentThread().getName());
+            var executorService = Executors.newCachedThreadPool();
             while (true) {
-                var executorService = Executors.newCachedThreadPool();
-
                 var futures = companyRepository.findAll().stream()
                         .map(company -> CompletableFuture.runAsync(() -> {
                             String companyCode = company.getCode();
@@ -73,16 +72,14 @@ public class QuoteUpdater implements DataUpdater {
         }
 
         private BigDecimal calculateGapPercentage(Quote savedQuote, Quote fetchedQuote) {
-            var savedQuotePrice = savedQuote.getPrice();
             var fetchedQuotePrice = fetchedQuote.getPrice();
+            if (Objects.isNull(savedQuote)) {
+                return fetchedQuotePrice;
+            }
+            var savedQuotePrice = savedQuote.getPrice();
             return fetchedQuotePrice.subtract(savedQuotePrice)
                     .divide(savedQuotePrice, 5, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal(100));
         }
-
-        // old price = 100% - 100
-        // new price = ???? - 105
-
-
     }
 }

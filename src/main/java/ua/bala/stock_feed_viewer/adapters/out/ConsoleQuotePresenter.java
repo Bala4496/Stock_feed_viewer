@@ -21,11 +21,11 @@ public class ConsoleQuotePresenter implements QuotePresenter {
                 .forEach(order ->
                         System.out.println(parseQuote((order + 1), quotes.get(order)))
                 );
-        System.out.println("-".repeat(64));
+        System.out.printf("-------- %s --------%n", quoteReport.getTitle());
     }
 
     private String parseQuote(int order, Quote quote) {
-        return "%d. Company code: %s, Price: %s, Percentage changes: 5%%"
-                .formatted(order, quote.getCompanyCode(), quote.getPrice().toString());
+        return "%d. Company code: %s, Price: %s, Percentage changes: %s%%"
+                .formatted(order, quote.getCompanyCode(), quote.getPrice(), quote.getGapPercentage());
     }
 }

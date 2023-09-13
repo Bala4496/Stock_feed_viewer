@@ -35,7 +35,7 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
             FROM (
                 SELECT id, company_code, price, gap_percentage, created_at, ROW_NUMBER() 
                     OVER (PARTITION BY company_code ORDER BY created_at DESC) AS row_num 
-                FROM quote
+                FROM quotes
             ) ranked 
             WHERE row_num = 1
             """,
