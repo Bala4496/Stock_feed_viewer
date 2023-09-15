@@ -1,5 +1,6 @@
 package ua.bala.stock_feed_viewer.domain.mapper;
 
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ua.bala.stock_feed_viewer.domain.dto.CompanyDTO;
@@ -9,5 +10,8 @@ import ua.bala.stock_feed_viewer.domain.model.Company;
 public interface CompanyMapper {
 
     @Mapping(target = "id", ignore = true)
-    Company map(CompanyDTO userDto);
+    Company map(CompanyDTO companyDTO);
+
+    @InheritInverseConfiguration
+    CompanyDTO map(Company company);
 }

@@ -1,6 +1,6 @@
 package ua.bala.stock_feed_viewer.ports.out;
 
-import ua.bala.stock_feed_viewer.domain.service.report.QuoteReport;
+import ua.bala.stock_feed_viewer.domain.model.QuoteReport;
 
 public interface QuotePresenter {
 

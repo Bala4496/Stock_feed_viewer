@@ -9,5 +9,5 @@ RUN mvn clean package -Dmaven.test.skip
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/Stock_feed_viewer-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
+EXPOSE 8090
 CMD ["java", "-jar", "app.jar"]

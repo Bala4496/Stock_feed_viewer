@@ -1,5 +1,6 @@
 package ua.bala.stock_feed_viewer.domain.mapper;
 
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ua.bala.stock_feed_viewer.domain.dto.QuoteDTO;
@@ -10,4 +11,7 @@ public interface QuoteMapper {
 
     @Mapping(target = "id", ignore = true)
     Quote map(QuoteDTO quoteDTO);
+
+    @InheritInverseConfiguration
+    QuoteDTO map(Quote quote);
 }

@@ -9,9 +9,7 @@ services:
     depends_on:
       - postgres
     environment:
-      DB_HOST: stock-feed-viewer-postgres
-      DB_USERNAME: root
-      DB_PASSWORD: root
+      DB_HOST: stock-feed-viewer-postgres:5432
     ports:
       - "8090:8090"
 

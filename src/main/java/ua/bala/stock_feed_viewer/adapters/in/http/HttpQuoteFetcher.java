@@ -1,4 +1,4 @@
-package ua.bala.stock_feed_viewer.adapters.in;
+package ua.bala.stock_feed_viewer.adapters.in.http;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

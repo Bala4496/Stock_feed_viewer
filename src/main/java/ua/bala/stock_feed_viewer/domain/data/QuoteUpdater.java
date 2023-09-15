@@ -38,36 +38,68 @@ public class QuoteUpdater implements DataUpdater {
         @Override
         public void run() {
             log.info("Thread - {} : started", Thread.currentThread().getName());
-            var executorService = Executors.newCachedThreadPool();
+            var batchSize = 10;
             while (true) {
-                var futures = companyRepository.findAll().stream()
-                        .map(company -> CompletableFuture.runAsync(() -> {
-                            String companyCode = company.getCode();
-                            var savedQuoteFuture = CompletableFuture.supplyAsync(() -> quoteRepository.findLatestQuoteByCompanyCode(companyCode).orElse(null), executorService);
-                            var fetchedQuoteFuture = CompletableFuture.supplyAsync(() -> quoteFetcher.fetchQuoteByCompanyCode(companyCode).orElse(null), executorService);
-
-                            var combinedFuture = savedQuoteFuture.thenCombineAsync(
-                                    fetchedQuoteFuture,
-                                    (savedQuote, fetchedQuote) -> {
-                                        if (Objects.nonNull(fetchedQuote) && !fetchedQuote.equals(savedQuote)) {
-                                            fetchedQuote.setGapPercentage(calculateGapPercentage(savedQuote, fetchedQuote));
-                                            return quoteRepository.save(fetchedQuote);
-                                        }
-                                        return savedQuote;
-                                    }, executorService
-                            );
-
-                            combinedFuture.join();
-                        }, executorService))
-                        .toList();
+                var executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+                var companies = companyRepository.findAll();
 
                 try {
-                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
-                } catch (Exception e) {
-                    log.error("Error while updating quotes", e);
+                    for (int i = 0; i < companies.size(); i += batchSize) {
+                        var batch = companies.subList(i, Math.min(i + batchSize, companies.size()));
+
+                        var futures = batch.stream()
+                                .map(company -> CompletableFuture.runAsync(() -> {
+                                    var companyCode = company.getCode();
+                                    var savedQuote = quoteRepository.findLatestQuoteByCompanyCode(companyCode).orElse(null);
+                                    var fetchedQuote = quoteFetcher.fetchQuoteByCompanyCode(companyCode).orElse(null);
+
+                                    if (Objects.nonNull(fetchedQuote) && !fetchedQuote.equals(savedQuote)) {
+                                        fetchedQuote.setGapPercentage(calculateGapPercentage(savedQuote, fetchedQuote));
+                                        quoteRepository.save(fetchedQuote);
+                                    }
+                                }, executorService))
+                                .toList();
+
+                        var allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+                        try {
+                            allOf.get();
+                        } catch (Exception e) {
+                            log.error("Error while updating quotes", e);
+                        }
+                    }
                 } finally {
                     executorService.shutdown();
                 }
+
+//                var futures = all.stream()
+//                        .map(company -> CompletableFuture.runAsync(() -> {
+//                            String companyCode = company.getCode();
+//                            var savedQuoteFuture = CompletableFuture.supplyAsync(() -> quoteRepository.findLatestQuoteByCompanyCode(companyCode).orElse(null), executorService);
+//                            var fetchedQuoteFuture = CompletableFuture.supplyAsync(() -> quoteFetcher.fetchQuoteByCompanyCode(companyCode).orElse(null), executorService);
+//
+//                            var combinedFuture = savedQuoteFuture.thenCombineAsync(
+//                                    fetchedQuoteFuture,
+//                                    (savedQuote, fetchedQuote) -> {
+//                                        if (Objects.nonNull(fetchedQuote) && !fetchedQuote.equals(savedQuote)) {
+//                                            fetchedQuote.setGapPercentage(calculateGapPercentage(savedQuote, fetchedQuote));
+//                                            return quoteRepository.save(fetchedQuote);
+//                                        }
+//                                        return savedQuote;
+//                                    }, executorService
+//                            );
+//
+//                            combinedFuture.join();
+//                        }, executorService))
+//                        .toList();
+//
+//                try {
+//                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+//                } catch (Exception e) {
+//                    log.error("Error while updating quotes", e);
+//                } finally {
+//                    executorService.shutdown();
+//                }
             }
         }
 
@@ -78,7 +110,7 @@ public class QuoteUpdater implements DataUpdater {
             }
             var savedQuotePrice = savedQuote.getPrice();
             return fetchedQuotePrice.subtract(savedQuotePrice)
-                    .divide(savedQuotePrice, 5, RoundingMode.HALF_UP)
+                    .divide(savedQuotePrice, 4, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal(100));
         }
     }

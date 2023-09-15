@@ -7,19 +7,19 @@ spring:
     name: stocksfeedviewer
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_DATABASE:stock_feed_viewer_db}
+    url: jdbc:postgresql://${DB_HOST:localhost:5433}/${DB_DATABASE:stock_feed_viewer_db}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
 
   flyway:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_DATABASE:stock_feed_viewer_db}
+    url: jdbc:postgresql://${DB_HOST:localhost:5433}/${DB_DATABASE:stock_feed_viewer_db}
     user: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
 
 stock-feed-api:
   url: ${STOCK_FEED_API_HOST:localhost:8080}
-  api-key: JexlTkjKyHWOtVkKCSie
+  api-key: ${STOCK_FEED_API_KEY:AtiSurItLufAStFPnQVa}
 
 displaying:
   delay: ${DISPLAY_DELAY:5000} # 5 * 1000ms = 5 sec
