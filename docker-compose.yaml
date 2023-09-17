@@ -10,8 +10,12 @@ services:
       - postgres
     environment:
       DB_HOST: stock-feed-viewer-postgres:5432
+      STOCK_FEED_API_HOST: stock-feed-app:8080
     ports:
       - "8090:8090"
+    networks:
+      - stock-feed-viewer-network
+      - stock-feed-network
 
   postgres:
     image: postgres:latest
@@ -24,6 +28,13 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - stock-feed-viewer-network
 
 volumes:
   postgres_data:
+
+networks:
+  stock-feed-viewer-network:
+  stock-feed-network:
+    external: true
