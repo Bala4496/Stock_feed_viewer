@@ -39,8 +39,8 @@ public class QuoteController implements QuotePresenter {
         return quoteMapper.map(quoteService.getQuoteByCompanyCode(code));
     }
 
-    @GetMapping("/report")
-    public List<QuoteReportDTO> getQuoteReport() {
+    @GetMapping("/reports")
+    public List<QuoteReportDTO> getQuoteReports() {
         return quoteReports.stream()
                 .map(quoteReportMapper::map)
                 .toList();
